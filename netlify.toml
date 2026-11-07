@@ -4,6 +4,6 @@
 
 [[redirects]]
   from = "/api/*"
-  to = "https://tobago-moon-tide-api.onrender.com//api/:splat"
+  to = "https://tobago-moon-tide-api.onrender.com/api/:splat"
   status = 200
   force = true
