@@ -1,1 +1,2 @@
-
+/*
+  Content-Security-Policy: frame-ancestors 'self' https://YOUR-ARCGIS-HOST;
