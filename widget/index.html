@@ -1,0 +1,882 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071426">
+
+  <title>Tobago Moon & Tide Calendar</title>
+
+  <style>
+    :root {
+      --bg: #071426;
+      --card: #122641;
+      --gold: #f8d987;
+      --text: #f5f7ff;
+      --muted: #b8c7df;
+      --border: #294563;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      width: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      width: 100%;
+      overflow-x: hidden;
+      font-family: Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 50% 0%, #1c4770, transparent 48%),
+        var(--bg);
+    }
+
+    .container {
+      width: min(1050px, 94%);
+      margin: auto;
+      padding-top: 20px;
+    }
+
+    .info {
+      text-align: center;
+      background: rgba(18, 38, 65, .85);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 25px 15px;
+      margin-bottom: 22px;
+    }
+
+    #currentMoon {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 125px;
+    }
+
+    #currentMoon .moon-svg {
+      width: 112px;
+      height: 112px;
+    }
+
+    #currentPhase {
+      color: var(--gold);
+      font-size: 20px;
+      font-weight: bold;
+      margin: 8px 0;
+    }
+
+    #illumination,
+    #age {
+      color: var(--muted);
+      margin: 8px;
+      font-size: 13px;
+    }
+
+    #today {
+      font-size: 13px;
+      margin-top: 12px;
+    }
+
+    .monthbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 25px 0 15px;
+    }
+
+    .monthbar h2 {
+      text-align: center;
+      font-size: 17px;
+      margin: 0;
+    }
+
+    button {
+      background: #23496e;
+      color: white;
+      border: 1px solid #54789c;
+      border-radius: 9px;
+      padding: 11px 14px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+    }
+
+    button:hover {
+      background: #32618d;
+    }
+
+    button:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 3px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .phase {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      text-align: center;
+      padding: 20px 10px;
+      min-width: 0;
+    }
+
+    .phase .symbol {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 70px;
+      margin-bottom: 12px;
+    }
+
+    .phase .moon-svg {
+      width: 66px;
+      height: 66px;
+    }
+
+    .phase h3 {
+      font-size: 13px;
+      color: var(--gold);
+      margin: 8px 0;
+    }
+
+    .phase .date {
+      font-size: 12px;
+      font-weight: bold;
+      margin: 12px 0 6px;
+    }
+
+    .phase .time {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .phase .description {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+      margin-top: 12px;
+    }
+
+    .tide-day {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 8px;
+      text-align: center;
+      min-width: 0;
+    }
+
+    .tide-day .date {
+      font-weight: bold;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .tide-day .classification {
+      color: var(--gold);
+      font-size: 12px;
+    }
+
+    .tide-day .lunar-phase {
+      color: var(--muted);
+      font-size: 10px;
+      margin-top: 5px;
+    }
+
+    .moon-svg {
+      display: block;
+      overflow: visible;
+      shape-rendering: geometricPrecision;
+      flex-shrink: 0;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .moon-svg {
+        transition: transform 180ms ease;
+      }
+
+      .phase:hover .moon-svg {
+        transform: scale(1.06);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .moon-svg {
+        transition: none;
+      }
+    }
+
+    .note {
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.7;
+      font-size: 11px;
+      padding: 25px 8px 35px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 16px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+    }
+
+    .error {
+      color: #ffb7b7;
+      font-size: 12px;
+      padding: 12px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 650px) {
+      .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .phase {
+        padding: 17px 8px;
+      }
+
+      .monthbar h2 {
+        font-size: 14px;
+      }
+
+      button {
+        padding: 10px 9px;
+      }
+    }
+
+    @media (max-width: 340px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<main class="container">
+
+  <section class="info" aria-label="Current moon phase">
+
+    <div id="currentMoon"></div>
+
+    <div id="currentPhase">
+      Loading moon phase...
+    </div>
+
+    <div id="illumination"></div>
+
+    <div id="age"></div>
+
+    <p id="today"></p>
+
+  </section>
+
+  <div class="monthbar">
+
+    <button id="previous" aria-label="Previous month">
+      ❮ Prev
+    </button>
+
+    <h2 id="monthTitle">Month</h2>
+
+    <button id="next" aria-label="Next month">
+      Next ❯
+    </button>
+
+  </div>
+
+  <section
+    class="grid"
+    id="phaseGrid"
+    aria-live="polite">
+  </section>
+
+  <section
+    class="info"
+    aria-label="Daily tide classification">
+
+    <h2>Tide Classification</h2>
+
+    <div id="tideStatus" aria-live="polite">
+      Loading tide data...
+    </div>
+
+    <div class="grid" id="tideGrid"></div>
+
+  </section>
+
+  <div class="note">
+
+    Moon phases and illumination are calculated using PyEphem.
+
+    <br>
+
+    Times shown are Tobago local time
+    (AST, UTC−4).
+
+    <br>
+
+    Tide classifications are estimated from lunar phases.
+    They are not actual tide heights or exact high and low tide times.
+
+  </div>
+
+</main>
+
+<footer>
+  Tobago Moon & Tide Calendar
+</footer>
+
+<script>
+"use strict";
+
+const TIME_ZONE = "America/Port_of_Spain";
+
+const API = "/api";
+
+const PHASES = [
+  {
+    name: "New Moon",
+    description: "The Moon is mostly dark.",
+    key: "New Moon",
+    fraction: 0
+  },
+  {
+    name: "First Quarter",
+    description: "Half illuminated and waxing.",
+    key: "First Quarter",
+    fraction: 0.25
+  },
+  {
+    name: "Full Moon",
+    description: "The visible face is fully illuminated.",
+    key: "Full Moon",
+    fraction: 0.5
+  },
+  {
+    name: "Last Quarter",
+    description: "Half illuminated and waning.",
+    key: "Last Quarter",
+    fraction: 0.75
+  }
+];
+
+const $ = id => document.getElementById(id);
+
+let displayedYear;
+let displayedMonth;
+let svgCounter = 0;
+
+const monthFormatter = new Intl.DateTimeFormat("en", {
+  month: "long",
+  year: "numeric",
+  timeZone: TIME_ZONE
+});
+
+const dateFormatter = new Intl.DateTimeFormat("en", {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  timeZone: TIME_ZONE
+});
+
+const timeFormatter = new Intl.DateTimeFormat("en", {
+  hour: "numeric",
+  minute: "2-digit",
+  timeZone: TIME_ZONE,
+  timeZoneName: "short"
+});
+
+const localFormatter = new Intl.DateTimeFormat("en", {
+  dateStyle: "full",
+  timeStyle: "short",
+  timeZone: TIME_ZONE
+});
+
+function moonSvg(fraction) {
+
+  const id = ++svgCounter;
+
+  const cosine = Math.cos(fraction * 2 * Math.PI);
+
+  const waxing = fraction < 0.5;
+
+  const rx = 45 * Math.abs(cosine);
+
+  const sweep = waxing ? 1 : 0;
+
+  const path = waxing
+    ? `M50 5 A45 45 0 0 1 50 95 A${rx} 45 0 0 ${sweep} 50 5 Z`
+    : `M50 5 A45 45 0 0 0 50 95 A${rx} 45 0 0 ${sweep} 50 5 Z`;
+
+  return `
+    <svg
+      class="moon-svg"
+      viewBox="0 0 100 100"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="Moon phase">
+
+      <defs>
+
+        <radialGradient id="base-${id}" cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stop-color="#536477"/>
+          <stop offset="65%" stop-color="#273849"/>
+          <stop offset="100%" stop-color="#101d2b"/>
+        </radialGradient>
+
+        <radialGradient id="light-${id}" cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stop-color="#fff9df"/>
+          <stop offset="60%" stop-color="#e8dfc5"/>
+          <stop offset="90%" stop-color="#b9b29f"/>
+          <stop offset="100%" stop-color="#777d80"/>
+        </radialGradient>
+
+        <clipPath id="clip-${id}">
+          <circle cx="50" cy="50" r="45"/>
+        </clipPath>
+
+      </defs>
+
+      <circle
+        cx="50"
+        cy="50"
+        r="45"
+        fill="url(#base-${id})"/>
+
+      <path
+        d="${path}"
+        fill="url(#light-${id})"/>
+
+      <g
+        clip-path="url(#clip-${id})"
+        fill="#817e73"
+        opacity=".22">
+
+        <circle cx="34" cy="32" r="6"/>
+        <circle cx="64" cy="27" r="4"/>
+        <circle cx="57" cy="57" r="8"/>
+        <circle cx="32" cy="70" r="5"/>
+        <circle cx="72" cy="73" r="3"/>
+
+      </g>
+
+      <circle
+        cx="50"
+        cy="50"
+        r="45"
+        fill="none"
+        stroke="#aab4bd"
+        stroke-opacity=".25"
+        stroke-width=".8"/>
+
+    </svg>
+  `;
+}
+
+function showError(element, message) {
+
+  element.replaceChildren();
+
+  const error = document.createElement("div");
+
+  error.className = "error";
+
+  error.textContent = message;
+
+  element.appendChild(error);
+}
+
+async function fetchJSON(url) {
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Server returned ${response.status}`);
+  }
+
+  return response.json();
+}
+
+
+// CURRENT MOON INFORMATION
+
+async function renderCurrent() {
+
+  try {
+
+    const data = await fetchJSON(
+      `${API}/moon`
+    );
+
+    $("currentMoon").innerHTML =
+      moonSvg(data.fraction);
+
+    $("currentPhase").textContent =
+      data.phase;
+
+    $("illumination").textContent =
+      `Illuminated: ${Number(data.illumination).toFixed(1)}%`;
+
+    $("age").textContent =
+      `Moon age: ${Number(data.age).toFixed(1)} days`;
+
+    $("today").textContent =
+      `Tobago time: ${localFormatter.format(new Date())}`;
+
+  } catch (error) {
+
+    console.error("Moon data error:", error);
+
+    showError(
+      $("currentMoon"),
+      "Unable to load moon information. Please try again."
+    );
+
+    $("currentPhase").textContent =
+      "Moon information unavailable";
+  }
+}
+
+
+// MONTHLY ASTRONOMICAL PHASES
+
+async function renderCalendar() {
+
+  $("monthTitle").textContent =
+    monthFormatter.format(
+      new Date(Date.UTC(
+        displayedYear,
+        displayedMonth,
+        15,
+        16
+      ))
+    );
+
+  $("phaseGrid").replaceChildren();
+
+  try {
+
+    const data = await fetchJSON(
+      `${API}/phases?year=${displayedYear}&month=${displayedMonth + 1}`
+    );
+
+    const fragment = document.createDocumentFragment();
+
+    for (const phase of PHASES) {
+
+      const occurrence = data.find(
+        item => item.phase === phase.key
+      );
+
+      if (!occurrence) continue;
+
+      const card = document.createElement("article");
+
+      card.className = "phase";
+
+      const symbol = document.createElement("div");
+
+      symbol.className = "symbol";
+
+      symbol.innerHTML = moonSvg(phase.fraction);
+
+      const title = document.createElement("h3");
+
+      title.textContent = phase.name;
+
+      const date = document.createElement("div");
+
+      date.className = "date";
+
+      date.textContent = dateFormatter.format(
+        new Date(occurrence.timestamp)
+      );
+
+      const time = document.createElement("div");
+
+      time.className = "time";
+
+      time.textContent = timeFormatter.format(
+        new Date(occurrence.timestamp)
+      );
+
+      const description = document.createElement("div");
+
+      description.className = "description";
+
+      description.textContent = phase.description;
+
+      card.append(
+        symbol,
+        title,
+        date,
+        time,
+        description
+      );
+
+      fragment.appendChild(card);
+    }
+
+    $("phaseGrid").replaceChildren(fragment);
+
+  } catch (error) {
+
+    console.error("Phase calendar error:", error);
+
+    showError(
+      $("phaseGrid"),
+      "Unable to load astronomical phase dates."
+    );
+
+  }
+
+  await renderTideCalendar();
+}
+
+
+// TIDE CLASSIFICATION
+
+async function renderTideCalendar() {
+
+  const status = $("tideStatus");
+
+  const grid = $("tideGrid");
+
+  status.textContent = "Loading tide data...";
+
+  grid.replaceChildren();
+
+  try {
+
+    const days = await fetchJSON(
+      `${API}/tides?year=${displayedYear}&month=${displayedMonth + 1}`
+    );
+
+    const fragment = document.createDocumentFragment();
+
+    for (const day of days) {
+
+      const card = document.createElement("article");
+
+      card.className = "tide-day";
+
+      const date = document.createElement("div");
+
+      date.className = "date";
+
+      date.textContent = day.date;
+
+      const classification = document.createElement("div");
+
+      classification.className = "classification";
+
+      classification.textContent = day.classification;
+
+      const phase = document.createElement("div");
+
+      phase.className = "lunar-phase";
+
+      phase.textContent =
+        day.phases || "No exact phase today";
+
+      card.append(
+        date,
+        classification,
+        phase
+      );
+
+      fragment.appendChild(card);
+    }
+
+    grid.replaceChildren(fragment);
+
+    status.textContent =
+      "Spring and neap windows are estimated from lunar phases.";
+
+  } catch (error) {
+
+    console.error("Tide data error:", error);
+
+    status.textContent =
+      "Could not load tide data. Please try again.";
+
+  }
+}
+
+
+// MONTH NAVIGATION
+
+function changeMonth(direction) {
+
+  displayedMonth += direction;
+
+  if (displayedMonth < 0) {
+
+    displayedMonth = 11;
+
+    displayedYear--;
+
+  } else if (displayedMonth > 11) {
+
+    displayedMonth = 0;
+
+    displayedYear++;
+
+  }
+
+  renderCalendar();
+}
+
+$("previous").addEventListener(
+  "click",
+  () => changeMonth(-1)
+);
+
+$("next").addEventListener(
+  "click",
+  () => changeMonth(1)
+);
+
+
+// INITIALISE TO TOBAGO'S CURRENT MONTH
+
+function getTobagoMonth() {
+
+  const parts = new Intl.DateTimeFormat("en", {
+    year: "numeric",
+    month: "numeric",
+    timeZone: TIME_ZONE
+  }).formatToParts(new Date());
+
+  const values = {};
+
+  parts.forEach(part => {
+    values[part.type] = Number(part.value);
+  });
+
+  return {
+    year: values.year,
+    month: values.month - 1
+  };
+}
+
+const initial = getTobagoMonth();
+
+displayedYear = initial.year;
+
+displayedMonth = initial.month;
+
+renderCurrent();
+
+renderCalendar();
+
+
+// REFRESH CURRENT MOON INFORMATION
+
+setInterval(renderCurrent, 60000);
+
+document.addEventListener(
+  "visibilitychange",
+  () => {
+
+    if (!document.hidden) {
+
+      renderCurrent();
+
+    }
+
+  }
+);
+
+
+// AUTOMATIC IFRAME HEIGHT ADJUSTMENT
+
+(function () {
+
+  let lastHeight = 0;
+
+  let scheduled = false;
+
+  function reportHeight() {
+
+    scheduled = false;
+
+    const height = Math.ceil(
+      Math.max(
+        document.documentElement.scrollHeight,
+        document.body.scrollHeight,
+        document.documentElement.getBoundingClientRect().height
+      )
+    );
+
+    if (height === lastHeight) return;
+
+    lastHeight = height;
+
+    window.parent.postMessage(
+      {
+        type: "tobago-moon-tide-resize",
+        height: height
+      },
+      "*"
+    );
+
+  }
+
+  function scheduleReport() {
+
+    if (scheduled) return;
+
+    scheduled = true;
+
+    requestAnimationFrame(reportHeight);
+
+  }
+
+  const observer = new ResizeObserver(scheduleReport);
+
+  observer.observe(document.documentElement);
+
+  observer.observe(document.body);
+
+  new MutationObserver(scheduleReport).observe(
+    document.body,
+    {
+      childList: true,
+      subtree: true,
+      attributes: true
+    }
+  );
+
+  window.addEventListener("load", scheduleReport);
+
+  window.addEventListener("resize", scheduleReport);
+
+  scheduleReport();
+
+})();
+
+</script>
+
+</body>
+</html>
